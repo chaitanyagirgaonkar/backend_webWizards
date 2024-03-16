@@ -6,7 +6,8 @@ const router = Router();
 router.use(verifyJWT)
 
 router.route("/").post(createProfile);
-router.route("/:profileId").patch(updateProfile).delete(deleteProfile).get(getUserProfile)
+router.route("/:profileId").patch(updateProfile).delete(deleteProfile)
+router.route("/getProfile").post(getUserProfile)
 
 
 export default router

@@ -23,11 +23,11 @@ import reportRouter from "./routes/report.router.js"
 
 
 // routes declaration 
-app.use("/user" , userRouter)
+app.use("/api/v1/user" , userRouter)
 
-app.use("/profile", profileRouter)
+app.use("/api/v1/profile", profileRouter)
 
-app.use("/report", reportRouter)
+app.use("/api/v1/report", reportRouter)
 
 
 

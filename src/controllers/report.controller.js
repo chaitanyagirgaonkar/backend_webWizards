@@ -5,9 +5,11 @@ import { User } from "../models/user.model.js";
 import { ApiResponse } from "../utils/ApiResponce.js";
 import mongoose, { isValidObjectId } from "mongoose"
 import { uploadOnCloudinary, deleteOnCloudinary, uploadCoverImageOnCloudinary } from '../utils/cloudinary.js'
+import nodemailer from 'nodemailer'
+import {Profile} from '../models/profile.model.js'
 
 
-
+ 
 const isUserOwner = async (reportId, req) => {
     const report = await Report.findById(reportId);
 
@@ -23,20 +25,20 @@ const createReport = asyncHandler(async function (req, res) {
     const { title, description, reportType } = req.body
 
     if (!title) {
-        return res.json( new ApiError(400, "title is required"))
+        throw new ApiError(400, "title is required")
     }
     if (!description) {
-        return res.json( new ApiError(401, "description is required"))
+        throw new ApiError(401, "description is required")
     }
     if (!reportType) {
-        return res.json(new ApiError( 402, "report Type is required"))
+        throw new ApiError( 402, "report Type is required")
     }
 
 
     const pdfFileLocalPath = req?.file?.path
 
     if (!pdfFileLocalPath) {
-        return res.json( new ApiError(409, "pdf file is required"))
+        throw new ApiError(409, "pdf file is required")
     }
 
 
@@ -44,7 +46,7 @@ const createReport = asyncHandler(async function (req, res) {
 
 
     if (!pdfFile) {
-        return res.json( new ApiError(406, "failed to upload pdf on cloudinary"))
+        throw new ApiError(406, "failed to upload pdf on cloudinary")
     }
 
 
@@ -61,7 +63,7 @@ const createReport = asyncHandler(async function (req, res) {
     })
 
     if (!report) {
-        return res.json( new ApiError(408, "failed to create report"))
+        throw new ApiError(408, "failed to create report")
     }
 
     return res
@@ -74,16 +76,16 @@ const updateReport = asyncHandler(async function (req, res) {
     const { title, description, reportType } = req.body
 
     if (!isValidObjectId(reportId)) {
-       return res.json( new ApiError(404, "In valid report Id !"))
+       throw new ApiError(404, "In valid report Id !")
     }
     if (!title) {
-       return res.json( new ApiError(400, "title is required"))
+       throw new ApiError(400, "title is required")
     }
     if (!description) {
-       return res.json( new ApiError(401, "description is required"))
+       throw new ApiError(401, "description is required")
     }
     if (!reportType) {
-       return res.json( new ApiError(402, "report Type is required"))
+       throw new ApiError(402, "report Type is required")
     }
 
     const pdfFileLocalPath = req?.file?.path
@@ -91,7 +93,7 @@ const updateReport = asyncHandler(async function (req, res) {
     const authorized = await isUserOwner(reportId, req)
 
     if (!authorized) {
-       return res.json( new ApiError(400, "Unauthorized Access"))
+       throw new ApiError(400, "Unauthorized Access")
     }
 
     const previousReport = await Report.findOne(
@@ -101,7 +103,7 @@ const updateReport = asyncHandler(async function (req, res) {
     )
 
     if (!previousReport) {
-       return res.json( new ApiError(404, 'previous report not found'))
+       throw new ApiError(404, 'previous report not found')
     }
 
     let pdfFile;
@@ -111,7 +113,7 @@ const updateReport = asyncHandler(async function (req, res) {
         pdfFile = await uploadCoverImageOnCloudinary(pdfFileLocalPath)
 
         if (!pdfFile) {
-           return res.json( new ApiError(404, "pdf File is not upload on cloudinary"))
+           throw new ApiError(404, "pdf File is not upload on cloudinary")
         }
     }
     if (!pdfFileLocalPath) {
@@ -125,7 +127,7 @@ const updateReport = asyncHandler(async function (req, res) {
             }, { new: true })
 
         if (!report) {
-           return res.json( new ApiError(400, "failed to update report"))
+           throw new ApiError(400, "failed to update report")
         }
         return res.status(200)
             .json(new ApiResponse(200, report, "report updated successfully."))
@@ -143,7 +145,7 @@ const updateReport = asyncHandler(async function (req, res) {
                 }
             }, { new: true })
         if (!report) {
-           return res.json( new ApiError(400, "failed to update report"))
+           throw new ApiError(400, "failed to update report")
         }
         return res.status(200)
             .json(new ApiResponse(200, report, "report updated successfully."))
@@ -154,12 +156,12 @@ const deleteReport = asyncHandler(async function (req, res) {
     const { reportId } = req.params
 
     if (!isValidObjectId(reportId)) {
-       return res.json( new ApiError(400, "Invalid report Id"))
+       throw new ApiError(400, "Invalid report Id")
     }
 
     const authorized = await isUserOwner(reportId, req)
     if (!authorized) {
-       return res.json( new ApiError(404, "unAuthorize user"))
+       throw new ApiError(404, "unAuthorize user")
     }
 
     const previousReport = await Report.findOne({
@@ -167,20 +169,20 @@ const deleteReport = asyncHandler(async function (req, res) {
     })
 
     if (!previousReport) {
-       return res.json( new ApiError(401, "previous report not found"))
+       throw new ApiError(401, "previous report not found")
     }
     if (previousReport) {
         const pdfdelete = await deleteOnCloudinary(previousReport?.pdfFile?.public_id, "raw")
 
         if (!pdfdelete) {
-           return res.json( new ApiError(402, "failed to delete  pdfFile"))
+           throw new ApiError(402, "failed to delete  pdfFile")
         }
         // console.log(pdfdelete)
     }
 
     const report = await Report.findByIdAndDelete(reportId)
     if (!report) {
-       return res.json( new ApiError(405, "failed to delete pdf"))
+       throw new ApiError(405, "failed to delete pdf")
     }
 
     return res
@@ -192,19 +194,17 @@ const getUserReportById = asyncHandler(async function (req, res) {
     const { reportId } = req.params
 
     if (!isValidObjectId(reportId)) {
-       return res.json( new ApiError(400, "Invalid report Id"))
+       throw new ApiError(400, "Invalid report Id")
     }
-
-
 
     const report = await Report.findById(reportId)
 
     const authorized = isUserOwner(reportId, req)
     if (!authorized) {
-       return res.json( new ApiError(404, "unAuthorize user"))
+       throw new ApiError(404, "unAuthorize user")
     }
     if (!report) {
-       return res.json( new ApiError(400, "failed to fetch pdf"))
+       throw new ApiError(400, "failed to fetch pdf")
     }
 
     return res
@@ -220,15 +220,58 @@ const getUserAllReport = asyncHandler(async function (req, res) {
     )
 
     if (!report) {
-       return res.json( new ApiError(404, "failed to find user report"))
+       throw new ApiError(404, "failed to find user report")
     }
 
     return res
-        .status(200)
         .json(new ApiResponse(200, report, "All report fetched successfully !"))
+});
 
+  
+const sendPatientReports = asyncHandler(async (req, res, next) => {
+    const patientReport = await Report.find({ owner: req.params.userId });
+    const userBelongingToReport = await Profile.find({owner:req.params.userId});
+    // patientReport.owner = userBelongingToReport;
+
+    res
+      .json(new ApiResponse(200,{ patientReport , userBelongingToReport}, "All report fetched successfully !"));
 });
 
 
+const sendEmail = asyncHandler(async (req , res ) =>{
+   
+    const url = `${process.env.FRONTEND_URL}/doctor/${req.params.reportId}`
 
-export { createReport, updateReport, deleteReport, getUserReportById, getUserAllReport }
+    console.log(url);
+
+    const text = `PatientReport\n${url}`;
+
+
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.USER,
+          pass: process.env.PASS,
+        },
+      });
+    
+      const mailOptions = {
+        from: "CareConnect <webwizards24@gmail.com>",
+        to : req.body.to ,
+        subject : "Report Link : ",
+        text
+      };
+
+      transporter.sendMail(mailOptions, function (err, info) {
+        if (err) throw new ApiError(500 , "Something went wrong while sending Email");
+        
+        res.json(new ApiResponse(200, "Email sent Successfully...!"))
+      });
+
+})
+
+
+export { createReport, updateReport, deleteReport, getUserReportById, getUserAllReport, sendPatientReports, sendEmail }

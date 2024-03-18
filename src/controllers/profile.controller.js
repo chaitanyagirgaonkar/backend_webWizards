@@ -46,7 +46,7 @@ const createProfile = asyncHandler(async (req, res) => {
     }
 
     const existedProfile = await Profile.findOne({
-        email: email
+        owner: req.user._id
     })
     // if (existedProfile) {
     //     throw new ApiError(409, "User with email exists");
@@ -142,37 +142,18 @@ const deleteProfile = asyncHandler(async function (req, res) {
         .json(new ApiResponse(200, { deletedProfile: profile }, "profile delete successfully"))
 });
 
-// const getUserProfile = asyncHandler(async function (req, res) {
 
-//     const { profileId } = req.params
-
-//     if (!isValidObjectId(profileId)) {
-//        return res.json(new ApiError(404, "profile Id is not found")) 
-//     }
-
-//     const profile = await Profile.findById(profileId)
-
-//     if (!profile) {
-//         res.json(new ApiError(404, "user not found ."))
-//     }
-
-
-
-//     res.status(200)
-//         .json(new ApiResponse(200, profile, "profile fetched successfully"))
-// });
 
 
 const getUserProfile = asyncHandler(async function (req, res) {
 
-    const { email } = req.body
+    // const { email } = req.body
 
-    if (!email) {
-        throw new ApiError(404, "email not found")
-    }
+    // if (!email) {
+    //     throw new ApiError(404, "email not found")
+    // }
 
     const profile = await Profile.findOne({
-        email: email,
         owner: req.user._id
     })
 

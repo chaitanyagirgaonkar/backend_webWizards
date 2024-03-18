@@ -5,19 +5,18 @@ const profileSchema = new Schema(
         firstName: {
             type: String,
             required: true,
-            lowercase: true,
             trim: true
         },
         middleName: {
             type: String,
             required: true,
-            lowercase: true,
+
             trim: true
         },
         lastName: {
             type: String,
             required: true,
-            lowercase: true,
+
             trim: true
         },
         email: {

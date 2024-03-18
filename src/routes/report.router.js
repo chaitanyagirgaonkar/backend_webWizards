@@ -6,33 +6,38 @@ import {
   getUserReportById,
   getUserAllReport,
   sendPatientReports,
-  sendEmail
+  sendEmail,
+  sendSingleReport
 } from "../controllers/report.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
-router.use(verifyJWT);
+// router.use(verifyJWT);
 
 router.route("/getAllreports")
-      .get(getUserAllReport);
+  .get(verifyJWT, getUserAllReport);
 
 router.route("/create")
-      .post(upload.single("pdfFile"), createReport);
+  .post(upload.single("pdfFile"), verifyJWT, createReport);
 
 router
   .route("/:reportId")
-  .get(getUserReportById)
-  .patch(upload.single("pdfFile"), updateReport)
-  .delete(deleteReport)
+  .get(verifyJWT, getUserReportById)
+  .patch(upload.single("pdfFile"), verifyJWT, updateReport)
+  .delete(verifyJWT, deleteReport)
 
 
 router
-   .route("/user/:userId")
-   .get(sendPatientReports)
+  .route("/user/:userId")
+  .get(sendPatientReports)
 
 router
-     .route('/email/:reportId')
-     .post(sendEmail)
+  .route('/email/:reportId')
+  .post(verifyJWT, sendEmail)
+
+router
+  .route("/report/:reportId")
+  .get(sendSingleReport)
 
 export default router;

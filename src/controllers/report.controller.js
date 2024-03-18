@@ -274,4 +274,18 @@ const sendEmail = asyncHandler(async (req , res ) =>{
 })
 
 
-export { createReport, updateReport, deleteReport, getUserReportById, getUserAllReport, sendPatientReports, sendEmail }
+// router.route("/report/:reportId");
+
+
+const sendSingleReport = asyncHandler(async  (req, res)=> {
+
+  const report = await Report.findById(req.params.reportId);
+  const userId = report.owner
+
+  const profile = await Profile.find({owner:userId});
+
+  res.status(200).json(new ApiResponse(200,{report,profile},"User report and profile fetched successfully..!"));
+});
+
+
+export { createReport, updateReport, deleteReport, getUserReportById, getUserAllReport, sendPatientReports, sendEmail , sendSingleReport }

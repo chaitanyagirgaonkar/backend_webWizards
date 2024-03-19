@@ -7,7 +7,8 @@ import {
   getUserAllReport,
   sendPatientReports,
   sendEmail,
-  sendSingleReport
+  sendSingleReport,
+  sendSingleEmail
 } from "../controllers/report.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
@@ -33,11 +34,15 @@ router
   .get(sendPatientReports)
 
 router
-  .route('/email/:reportId')
+  .route('/email/:userId')
   .post(verifyJWT, sendEmail)
 
 router
   .route("/report/:reportId")
   .get(sendSingleReport)
+
+router
+  .route("/email/report/:reportId")
+  .post(verifyJWT,sendSingleEmail)
 
 export default router;

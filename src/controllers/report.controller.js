@@ -239,8 +239,43 @@ const sendPatientReports = asyncHandler(async (req, res, next) => {
 
 
 const sendEmail = asyncHandler(async (req , res ) =>{
+    
+    const url = `${process.env.FRONTEND_URL}/doctor/${req.params.userId}`
+
+    console.log(url);
+
+    const text = `PatientReport\n${url}`;
+
+
+    const transporter = nodemailer.createTransport({
+        service: "gmail",
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        auth: {
+          user: process.env.USER,
+          pass: process.env.PASS,
+        },
+      });
+    
+      const mailOptions = {
+        from: "CareConnect <webwizards24@gmail.com>",
+        to : req.body.to ,
+        subject : "Report Link : ",
+        text
+      };
+
+      transporter.sendMail(mailOptions, function (err, info) {
+        if (err) throw new ApiError(500 , "Something went wrong while sending Email");
+        
+        res.json(new ApiResponse(200, "Email sent Successfully...!"))
+      });
+
+})
+
+const sendSingleEmail = asyncHandler(async (req , res ) =>{
    
-    const url = `${process.env.FRONTEND_URL}/doctor/${req.params.reportId}`
+    const url = `${process.env.FRONTEND_URL}/doctor/report/${req.params.reportId}`
 
     console.log(url);
 
@@ -288,4 +323,4 @@ const sendSingleReport = asyncHandler(async  (req, res)=> {
 });
 
 
-export { createReport, updateReport, deleteReport, getUserReportById, getUserAllReport, sendPatientReports, sendEmail , sendSingleReport }
+export { createReport, updateReport, deleteReport, getUserReportById, getUserAllReport, sendPatientReports, sendEmail , sendSingleReport ,sendSingleEmail }
